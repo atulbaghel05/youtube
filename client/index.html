@@ -1,0 +1,63 @@
+<html>
+<header>
+    <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+    <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.18/jquery-ui.min.js"></script>
+    <script>
+        function callapi() {
+            $("#loading").show();
+            $.ajax({
+                type: "GET",
+                url: "http://localhost:3000/data",
+                cache: false,
+                beforeSend: function () {
+                    $("#loading").show();
+                },
+                complete: function () {
+                    // $("#loading").hide();
+                },
+                success: function (response) {
+                    console.log(response)
+                    $("#response-div").append(response.response + "</br>")
+                    $("#loading").show();
+                    callapi();
+                }
+            });
+        }
+        const webSocket = new WebSocket('ws://localhost:443/');
+        webSocket.onmessage = (event) => {
+            const data = JSON.parse(event.data);
+            console.log('got the message from server ', data)
+            $("#websocket-response-div").text(data.message)
+        }
+        function sendmessage() {
+            var msg = $("#inputbox").val();
+            console.log('current websock ', webSocket);
+            const data = { 'type': 'message', 'message': msg };
+            setTimeout(function () {
+                console.log('sending data');
+                console.log('current websock ', webSocket.readyState);
+                webSocket.send(JSON.stringify(data));
+            }, 2000);
+        }
+    </script>
+</header>
+
+<body>
+    <h1> Http Polling Demo</h1>
+    <button onclick="callapi()">
+        Start Polling
+    </button>
+    <div id="loading" hidden="true">Polling Started</div>
+    <div id="response-div"></div>
+    <br/>
+    <h1>Web Sockets Demo</h1>
+    <input type="text" id="inputbox" />
+    <br>
+    <button onclick="sendmessage()">
+        Send Message
+    </button>
+    <br />
+    <div id="websocket-response-div"></div>
+</body>
+
+</html>
